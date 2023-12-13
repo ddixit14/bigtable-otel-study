@@ -11,6 +11,8 @@ import com.google.cloud.bigtable.data.v2.models.*;
 import com.google.protobuf.ByteString;
 
 import java.io.IOException;
+import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
+import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
 
 public class BigtableDemo {
 
@@ -23,16 +25,26 @@ public class BigtableDemo {
 
         BigtableDataSettings.enableBuiltinMetrics();
 
+        StackdriverStatsExporter.createAndRegister(
+                StackdriverStatsConfiguration.builder()
+                        .setProjectId("spanner-demo-326919")
+                        .build()
+        );
+
+        BigtableDataSettings.enableOpenCensusStats();
+        // Enable GFE metric views
+        BigtableDataSettings.enableGfeOpenCensusStats();
+
+
+        // setup table and insertion logic
         String tableId = "table1";
-
         BigtableDataClient dataClient = BigtableDataClient.create(settings);
-
         String columnFamily = "cf1";
         String columnQualifier = "qualifier1";
-        String value = "1";
+        String value = "3";
 
         // Insert "value" into 10 rows
-        for (int i = 1; i <= 10000; i++) {
+        for (int i = 1; i <= 10; i++) {
             String rowKey = "row" + i;
 
             // Create a Mutation object to represent the data to be inserted
@@ -45,18 +57,18 @@ public class BigtableDemo {
             // Apply the RowMutation to the table
             dataClient.mutateRow(rowMutation);
 
+            //success for row
             System.out.println("Data added to Bigtable for row: " + rowKey);
         }
-
+        //success for operation
         System.out.println("Data added to rows in Bigtable successfully.");
 
     }
 }
 
-/////// use to create a table & family via code
+//use to create a table & family via code
 //        BigtableTableAdminClient tableAdminClient = BigtableTableAdminClient
 //                .create(projectId, instanceId);
-//
 //        try {
 //            tableAdminClient.createTable(
 //                    CreateTableRequest.of("my-table")
